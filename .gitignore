@@ -1,0 +1,12 @@
+# Build artifacts
+build/
+dist/
+mcp-memory
+*.exe
+*.tar.gz
+*.zip
+*.sha256
+
+# OS files
+.DS_Store
+Thumbs.db

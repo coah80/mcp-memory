@@ -38,10 +38,10 @@ func (j *Journal) Log(action, target, details string) {
 	content += fmt.Sprintf("- **%s** [%s] %s: %s\n",
 		now.Format("15:04:05"), action, target, details)
 
-	os.WriteFile(journalFile, []byte(content), 0644)
+	os.WriteFile(journalFile, []byte(content), 0600)
 
 	logFile := filepath.Join(j.storage.JournalDir, "journal.log")
-	f, err := os.OpenFile(logFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	f, err := os.OpenFile(logFile, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0600)
 	if err == nil {
 		defer f.Close()
 		entry := JournalEntry{
@@ -58,6 +58,10 @@ func (j *Journal) Log(action, target, details string) {
 func (j *Journal) Read(date string) (string, error) {
 	if date == "" {
 		date = time.Now().Format("2006-01-02")
+	}
+
+	if _, err := time.Parse("2006-01-02", date); err != nil {
+		return "", fmt.Errorf("invalid date format, use YYYY-MM-DD")
 	}
 
 	journalFile := filepath.Join(j.storage.JournalDir, date+".md")

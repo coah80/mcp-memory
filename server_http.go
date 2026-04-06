@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 )
 
 type HTTPServer struct {
@@ -58,10 +59,17 @@ func (h *HTTPServer) Run() error {
 	mux.HandleFunc("/setup", h.handleSetup)
 	mux.HandleFunc("/access", h.handleAccessStats)
 
-	log.Printf("MCP Memory Server starting on :%s", h.port)
+	log.Printf("MCP Memory Server starting on 127.0.0.1:%s", h.port)
 	log.Printf("Memory directory: %s", h.storage.MemoryDir)
 
-	return http.ListenAndServe(":"+h.port, mux)
+	srv := &http.Server{
+		Addr:         "127.0.0.1:" + h.port,
+		Handler:      mux,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 30 * time.Second,
+		IdleTimeout:  60 * time.Second,
+	}
+	return srv.ListenAndServe()
 }
 
 func (h *HTTPServer) handleHealth(w http.ResponseWriter, r *http.Request) {
@@ -125,6 +133,7 @@ func (h *HTTPServer) handleCreateMemory(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
+	r.Body = http.MaxBytesReader(w, r.Body, 10*1024*1024)
 	var mem Memory
 	if err := json.NewDecoder(r.Body).Decode(&mem); err != nil {
 		http.Error(w, "Invalid request body", http.StatusBadRequest)

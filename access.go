@@ -48,7 +48,7 @@ func (at *AccessTracker) load() {
 
 func (at *AccessTracker) save() {
 	data, _ := json.MarshalIndent(at.store, "", "  ")
-	os.WriteFile(at.storage.AccessPath, data, 0644)
+	os.WriteFile(at.storage.AccessPath, data, 0600)
 }
 
 func (at *AccessTracker) RecordAccess(memoryName, tool string) {

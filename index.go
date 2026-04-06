@@ -116,7 +116,7 @@ func (idx *Index) Build() error {
 	idx.loaded = true
 
 	indexJSON, _ := json.MarshalIndent(index, "", "  ")
-	os.WriteFile(idx.storage.IndexPath, indexJSON, 0644)
+	os.WriteFile(idx.storage.IndexPath, indexJSON, 0600)
 
 	return nil
 }

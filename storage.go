@@ -26,7 +26,7 @@ func NewStorage(baseDir string) *Storage {
 	sessionDir := filepath.Join(baseDir, "sessions")
 
 	for _, d := range []string{memDir, journalDir, sessionDir} {
-		os.MkdirAll(d, 0755)
+		os.MkdirAll(d, 0700)
 	}
 
 	return &Storage{
@@ -101,7 +101,7 @@ func (s *Storage) CreateMemory(mem *Memory) error {
 	content += "---\n\n"
 	content += mem.Content
 
-	return os.WriteFile(filepath.Join(s.MemoryDir, name), []byte(content), 0644)
+	return os.WriteFile(filepath.Join(s.MemoryDir, name), []byte(content), 0600)
 }
 
 func (s *Storage) GetMemory(name string) (*Memory, error) {
@@ -152,7 +152,7 @@ func (s *Storage) ReadSpecialFile(path string) (string, error) {
 }
 
 func (s *Storage) WriteSpecialFile(path string, content string) error {
-	return os.WriteFile(path, []byte(content), 0644)
+	return os.WriteFile(path, []byte(content), 0600)
 }
 
 func (s *Storage) EnsureDefaults() {
@@ -179,7 +179,7 @@ This is your persistent persona file. Define who you are across all AI tools.
 - Always [things to always do]
 - Never [things to never do]
 `
-		os.WriteFile(s.SoulFile, []byte(defaultSoul), 0644)
+		os.WriteFile(s.SoulFile, []byte(defaultSoul), 0600)
 	}
 
 	if _, err := os.Stat(s.UserFile); os.IsNotExist(err) {
@@ -203,6 +203,6 @@ Context about you that AI tools should know.
 ## Current Focus
 - [What you're working on]
 `
-		os.WriteFile(s.UserFile, []byte(defaultUser), 0644)
+		os.WriteFile(s.UserFile, []byte(defaultUser), 0600)
 	}
 }

@@ -24,10 +24,25 @@ func NewSessionManager(storage *Storage) *SessionManager {
 	}
 }
 
+func sanitizeName(s string) string {
+	var b strings.Builder
+	for _, r := range s {
+		if (r >= 'a' && r <= 'z') || (r >= 'A' && r <= 'Z') || (r >= '0' && r <= '9') || r == '-' || r == '_' {
+			b.WriteRune(r)
+		}
+	}
+	result := b.String()
+	if result == "" {
+		return "unknown"
+	}
+	return result
+}
+
 func (sm *SessionManager) Start(tool string) *Session {
 	sm.mu.Lock()
 	defer sm.mu.Unlock()
 
+	tool = sanitizeName(tool)
 	id := fmt.Sprintf("%s-%d", tool, time.Now().UnixNano())
 	session := &Session{
 		ID:        id,
@@ -91,10 +106,10 @@ func (sm *SessionManager) Identify(sessionID, tool, model string) {
 	}
 
 	if tool != "" {
-		session.Tool = tool
+		session.Tool = sanitizeName(tool)
 	}
 	if model != "" {
-		session.Model = model
+		session.Model = sanitizeName(model)
 	}
 
 	sm.save(session)
@@ -154,7 +169,7 @@ func (sm *SessionManager) save(session *Session) {
 		return
 	}
 	path := filepath.Join(sm.storage.SessionDir, session.ID+".json")
-	os.WriteFile(path, data, 0644)
+	os.WriteFile(path, data, 0600)
 }
 
 func (sm *SessionManager) GetSession(id string) (*Session, error) {

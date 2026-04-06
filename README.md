@@ -43,7 +43,7 @@ irm https://mcps.coah80.com/mcp-memory/install.ps1 | iex
 
 ## How It Works
 
-mcp-memory runs as an MCP server over stdio. AI tools connect and get 13 tools, 6 resources, and 3 prompts. Memories are stored as markdown files on disk.
+mcp-memory runs as an MCP server over stdio. AI tools connect and get 15 tools, 6 resources, and 3 prompts. Memories are stored as markdown files on disk.
 
 ```
 Claude Code ──┐
@@ -211,6 +211,8 @@ This tells the AI to migrate any existing memories from its built-in system into
 | `session_log` | Log action to current session |
 | `session_identify` | Report which AI model is being used |
 | `setup_guide` | Set up mcp-memory as primary memory system |
+| `memory_grep` | Regex search across all memories and journals (grep-style) |
+| `self_update` | Update mcp-memory to the latest version |
 
 ## MCP Resources
 

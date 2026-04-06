@@ -339,8 +339,16 @@ func (m *MCPServer) handleToolsCall(id interface{}, params json.RawMessage) {
 		}
 		cache := m.index.GetCache()
 		m.journal.Log("list", "index", fmt.Sprintf("%d memories", len(cache)))
-		data, _ := json.MarshalIndent(cache, "", "  ")
-		result = string(data)
+		var b strings.Builder
+		b.WriteString(fmt.Sprintf("%d memories:\n\n", len(cache)))
+		for _, entry := range cache {
+			typeTag := ""
+			if entry.Type != "" {
+				typeTag = " [" + entry.Type + "]"
+			}
+			b.WriteString(fmt.Sprintf("- **%s**%s: %s\n", strings.TrimSuffix(entry.Name, ".md"), typeTag, entry.Description))
+		}
+		result = b.String()
 
 	case "memory_delete":
 		name := getStr("name")

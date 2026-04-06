@@ -122,12 +122,8 @@ check_tool() {
         zed)            [ -d "/Applications/Zed.app" ] || command -v zed &>/dev/null && found=true ;;
         windsurf)       [ -d "/Applications/Windsurf.app" ] || command -v windsurf &>/dev/null && found=true ;;
         vscode)         [ -d "/Applications/Visual Studio Code.app" ] || command -v code &>/dev/null && found=true ;;
-        cline)          [ -d "$HOME/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev" ] && found=true ;;
-        roo-code)       [ -d "$HOME/.roo" ] || [ -d "$HOME/Library/Application Support/Code/User/globalStorage/rooveterinaryinc.roo-cline" ] && found=true ;;
-        continue)       [ -d "$HOME/.continue" ] && found=true ;;
         codex)          command -v codex &>/dev/null && found=true ;;
         opencode)       command -v opencode &>/dev/null || [ -d "$HOME/.opencode" ] && found=true ;;
-        amp)            command -v amp &>/dev/null || [ -d "$HOME/.config/amp" ] && found=true ;;
     esac
 
     if $found; then
@@ -143,12 +139,8 @@ detect_tools() {
     check_tool "zed"            "Zed"
     check_tool "windsurf"       "Windsurf"
     check_tool "vscode"         "VS Code (Copilot)"
-    check_tool "cline"          "Cline"
-    check_tool "roo-code"       "Roo Code"
-    check_tool "continue"       "Continue.dev"
     check_tool "codex"          "Codex (OpenAI)"
     check_tool "opencode"       "OpenCode"
-    check_tool "amp"            "Amp"
 }
 
 # ── interactive selection (arrow keys TUI) ──
@@ -451,46 +443,6 @@ PYEOF
             add_rule_file "$HOME/Library/Application Support/Code/User/instructions" "mcp-memory.md"
             ;;
 
-        cline)
-            log "Cline"
-            add_mcp_json "$HOME/Library/Application Support/Code/User/globalStorage/saoudrizwan.claude-dev/settings/cline_mcp_settings.json" "mcpServers"
-            warn "cline rules are in VS Code settings — add to cline.customInstructions"
-            ;;
-
-        roo-code)
-            log "Roo Code"
-            add_mcp_json "$HOME/Library/Application Support/Code/User/globalStorage/rooveterinaryinc.roo-cline/settings/mcp_settings.json" "mcpServers"
-            add_rule_file "$HOME/.roo/rules" "mcp-memory.md"
-            ;;
-
-        continue)
-            log "Continue.dev"
-            mkdir -p "$HOME/.continue/mcpServers"
-            if [ ! -f "$HOME/.continue/mcpServers/mcp-memory.yaml" ]; then
-                cat > "$HOME/.continue/mcpServers/mcp-memory.yaml" << YAMLEOF
-name: MCP Memory
-version: 0.0.1
-schema: v1
-mcpServers:
-  - name: mcp-memory
-    type: stdio
-    command: $MCP_CMD
-    args:
-      - "--mode"
-      - "mcp"
-YAMLEOF
-                dim "created continue MCP config"
-            fi
-            local cont_cfg="$HOME/.continue/config.yaml"
-            if [ ! -f "$cont_cfg" ] || ! grep -q "mcp-memory" "$cont_cfg" 2>/dev/null; then
-                mkdir -p "$(dirname "$cont_cfg")"
-                echo "" >> "$cont_cfg"
-                echo 'rules:' >> "$cont_cfg"
-                echo '  - "Use mcp-memory MCP tools for ALL persistent memory. Save with memory_create (search first), journal with journal_log, call session_identify at session start. Read existing memories before responding."' >> "$cont_cfg"
-                dim "added rule to config.yaml"
-            fi
-            ;;
-
         codex)
             log "Codex (OpenAI)"
             local codex_cfg="$HOME/.codex/config.toml"
@@ -513,11 +465,6 @@ TOMLEOF
             append_rule "$HOME/.config/opencode/AGENTS.md"
             ;;
 
-        amp)
-            log "Amp"
-            add_mcp_json "$HOME/.config/amp/settings.json" "amp.mcpServers" "amp"
-            append_rule "$HOME/.config/amp/AGENTS.md"
-            ;;
     esac
 }
 

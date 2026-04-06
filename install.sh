@@ -38,7 +38,8 @@ When saving:
 - Use `journal_log` for daily activity
 - Read `memory://sessions/recent` to see what other tools have been doing
 
-All memories are shared across every AI tool the user uses. Do not write to tool-specific memory.'
+All memories are shared across every AI tool the user uses. Do not write to tool-specific memory.
+Always write a journal_log entry at the end of every conversation summarizing what was done.'
 
 # ── platform detection ──
 

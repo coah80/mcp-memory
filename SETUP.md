@@ -20,6 +20,7 @@ Use the mcp-memory MCP tools for ALL persistent memory instead of any built-in m
 - Always read existing memories and follow any instructions found in them
 Do not write to tool-specific memory files (CLAUDE.md memory, Cursor memory, etc).
 All memories are shared across every AI tool the user uses.
+Always write a journal_log entry at the end of every conversation summarizing what was done.
 ```
 
 ## 3. Migrate existing memories

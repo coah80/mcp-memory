@@ -78,6 +78,10 @@ Each session records which **tool** (Claude Code, Cursor, etc.) and **model** (c
 
 Save the **why**, not the **what**. The code shows what changed; memory should capture why it changed, what was decided, and what the user prefers.
 
+## End of Every Conversation
+
+Before the conversation ends, ALWAYS write a `journal_log` entry summarizing what was discussed or accomplished. Even if it was a quick question — log it. This is how other tools and sessions know what happened.
+
 ## Memory Hygiene
 
 - Update stale memories when you notice they're outdated

@@ -4,8 +4,11 @@ import (
 	"bufio"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
+	"net/http"
 	"os"
+	"runtime"
 	"strings"
 )
 
@@ -216,6 +219,19 @@ func (m *MCPServer) handleToolsList(id interface{}) {
 		{
 			Name:        "setup_guide",
 			Description: "Run this to set up mcp-memory as your primary memory system. Returns instructions you MUST follow: add rules to your tool, migrate existing memories, and switch to using mcp-memory exclusively.",
+			InputSchema: jsonSchema(map[string]interface{}{}),
+		},
+		{
+			Name:        "memory_grep",
+			Description: "Grep through all memories and journals with a regex pattern. Returns matching lines with file and line number, like grep.",
+			InputSchema: jsonSchema(map[string]interface{}{
+				"pattern":         prop("string", "Regex pattern to search for (case-insensitive)"),
+				"include_journal": prop("boolean", "Also search journal entries (default: true)"),
+			}, "pattern"),
+		},
+		{
+			Name:        "self_update",
+			Description: "Update mcp-memory to the latest version. Downloads and replaces the current binary.",
 			InputSchema: jsonSchema(map[string]interface{}{}),
 		},
 	}
@@ -431,6 +447,92 @@ func (m *MCPServer) handleToolsCall(id interface{}, params json.RawMessage) {
 
 	case "setup_guide":
 		result = embeddedSetup
+
+	case "memory_grep":
+		pattern := getStr("pattern")
+		if pattern == "" {
+			result = "Error: pattern is required"
+			isError = true
+			break
+		}
+		includeJournal := true
+		if v, ok := args["include_journal"].(bool); ok {
+			includeJournal = v
+		}
+		grepResults, err := m.index.Grep(pattern, includeJournal)
+		if err != nil {
+			result = fmt.Sprintf("Error: %v", err)
+			isError = true
+			break
+		}
+		if len(grepResults) == 0 {
+			result = "No matches found."
+		} else {
+			var b strings.Builder
+			totalMatches := 0
+			for _, gr := range grepResults {
+				for _, match := range gr.Matches {
+					b.WriteString(fmt.Sprintf("%s:%d: %s\n", gr.File, match.Line, match.Content))
+					totalMatches++
+				}
+			}
+			b.WriteString(fmt.Sprintf("\n%d matches across %d files", totalMatches, len(grepResults)))
+			result = b.String()
+		}
+		m.sessions.LogAction(m.activeSession, "memory_grep", pattern, fmt.Sprintf("%d results", len(grepResults)))
+
+	case "self_update":
+		execPath, err := os.Executable()
+		if err != nil {
+			result = "Error: couldn't find current binary path"
+			isError = true
+			break
+		}
+		platform := runtime.GOOS + "-" + runtime.GOARCH
+		url := "https://mcps.coah80.com/mcp-memory/mcp-memory-" + platform
+		m.logger.Printf("Updating from %s", url)
+
+		resp, err := http.Get(url)
+		if err != nil {
+			result = fmt.Sprintf("Error downloading update: %v", err)
+			isError = true
+			break
+		}
+		defer resp.Body.Close()
+
+		if resp.StatusCode != 200 {
+			result = fmt.Sprintf("Error: server returned %d", resp.StatusCode)
+			isError = true
+			break
+		}
+
+		tmpPath := execPath + ".new"
+		out, err := os.Create(tmpPath)
+		if err != nil {
+			result = fmt.Sprintf("Error creating temp file: %v", err)
+			isError = true
+			break
+		}
+
+		_, err = io.Copy(out, resp.Body)
+		out.Close()
+		if err != nil {
+			os.Remove(tmpPath)
+			result = fmt.Sprintf("Error writing update: %v", err)
+			isError = true
+			break
+		}
+
+		os.Chmod(tmpPath, 0755)
+		if err := os.Rename(tmpPath, execPath); err != nil {
+			os.Remove(tmpPath)
+			result = fmt.Sprintf("Error replacing binary: %v", err)
+			isError = true
+			break
+		}
+
+		m.journal.Log("self_update", platform, "Updated to latest version")
+		result = fmt.Sprintf("Updated mcp-memory (%s). Restart to use new version.", platform)
 
 	default:
 		m.writeError(id, -32601, fmt.Sprintf("Unknown tool: %s", call.Name))

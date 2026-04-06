@@ -2,8 +2,10 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"sync"
 )
@@ -232,6 +234,75 @@ func (idx *Index) FindSimilar(query string, threshold float64) []SimilarMemory {
 	}
 
 	return results
+}
+
+type GrepMatch struct {
+	Source  string `json:"source"`
+	Line    int    `json:"line"`
+	Content string `json:"content"`
+}
+
+type GrepResult struct {
+	File    string      `json:"file"`
+	Matches []GrepMatch `json:"matches"`
+}
+
+func (idx *Index) Grep(pattern string, includeJournal bool) ([]GrepResult, error) {
+	re, err := regexp.Compile("(?i)" + pattern)
+	if err != nil {
+		return nil, fmt.Errorf("invalid pattern: %v", err)
+	}
+
+	results := make([]GrepResult, 0)
+
+	files, _ := filepath.Glob(filepath.Join(idx.storage.MemoryDir, "*.md"))
+	for _, file := range files {
+		data, err := os.ReadFile(file)
+		if err != nil {
+			continue
+		}
+		matches := grepLines(re, string(data), filepath.Base(file))
+		if len(matches) > 0 {
+			results = append(results, GrepResult{
+				File:    strings.TrimSuffix(filepath.Base(file), ".md"),
+				Matches: matches,
+			})
+		}
+	}
+
+	if includeJournal {
+		journalFiles, _ := filepath.Glob(filepath.Join(idx.storage.JournalDir, "*.md"))
+		for _, file := range journalFiles {
+			data, err := os.ReadFile(file)
+			if err != nil {
+				continue
+			}
+			matches := grepLines(re, string(data), filepath.Base(file))
+			if len(matches) > 0 {
+				results = append(results, GrepResult{
+					File:    "journal/" + filepath.Base(file),
+					Matches: matches,
+				})
+			}
+		}
+	}
+
+	return results, nil
+}
+
+func grepLines(re *regexp.Regexp, content, source string) []GrepMatch {
+	matches := make([]GrepMatch, 0)
+	lines := strings.Split(content, "\n")
+	for i, line := range lines {
+		if re.MatchString(line) {
+			matches = append(matches, GrepMatch{
+				Source:  source,
+				Line:    i + 1,
+				Content: strings.TrimSpace(line),
+			})
+		}
+	}
+	return matches
 }
 
 func (idx *Index) GetCache() []MemoryIndex {

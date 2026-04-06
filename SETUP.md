@@ -24,13 +24,11 @@ All memories are shared across every AI tool the user uses.
 
 ## 3. Migrate existing memories
 
-Check if you have any existing memories in your built-in memory system:
-- Claude Code: check ~/.claude/projects/*/memory/ for .md files
-- Cursor: check your internal memory/context
-- Windsurf: check your memories
-- Any other built-in memory storage
+Check if YOU (the tool you are right now) have any existing memories in YOUR OWN built-in memory system. Do not look at other tools' memory files — only check your own:
+- If you have built-in memory, conversation history, or saved context, check that
+- Do NOT read other tools' config directories
 
-For each existing memory that contains useful persistent info (user preferences, project context, feedback, references), migrate it into mcp-memory:
+For each existing memory in YOUR system that contains useful persistent info (user preferences, project context, feedback, references), migrate it into mcp-memory:
 1. `memory_search` to check if it already exists
 2. If not, `memory_create` with an appropriate name, description, and type (user, project, feedback, reference)
 

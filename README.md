@@ -2,7 +2,7 @@
 
 Universal memory for AI coding tools. One server, every tool shares the same memory.
 
-Claude Code, Cursor, Claude Desktop, Codex, OpenCode, Windsurf, Zed, VS Code, Cline, Roo Code, Continue, Amp -- if it supports MCP, it works.
+Claude Code, Cursor, Claude Desktop, Codex, OpenCode, Windsurf, Zed, VS Code -- if it supports MCP, it works.
 
 Written in Go. Zero dependencies. Single binary.
 
@@ -183,12 +183,8 @@ Where to put it:
 | Windsurf | `~/.codeium/windsurf/memories/global_rules.md` |
 | Zed | Rules Library (Cmd+Alt+L) |
 | VS Code (Copilot) | `~/Library/Application Support/Code/User/instructions/mcp-memory.md` |
-| Cline | VS Code settings > `cline.customInstructions` |
-| Roo Code | `~/.roo/rules/mcp-memory.md` |
-| Continue.dev | `~/.continue/config.yaml` under `rules:` |
 | Codex | `~/.codex/AGENTS.md` |
 | OpenCode | `~/.config/opencode/AGENTS.md` |
-| Amp | `~/.config/amp/AGENTS.md` |
 
 ### 3. Tell the AI to finish setup
 
@@ -241,6 +237,8 @@ Auto-injected into AI context -- no tool call needed:
 | VS Code (Copilot) | yes |
 | Codex (OpenAI) | yes |
 | OpenCode | yes |
+
+Any other tool that supports MCP stdio should work too.
 
 ## Memory Format
 

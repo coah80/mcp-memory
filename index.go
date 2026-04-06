@@ -170,6 +170,31 @@ func (idx *Index) Search(query string) []*Memory {
 		}
 	}
 
+	journalFiles, _ := filepath.Glob(filepath.Join(idx.storage.JournalDir, "*.md"))
+	for _, file := range journalFiles {
+		data, err := os.ReadFile(file)
+		if err != nil {
+			continue
+		}
+		content := string(data)
+		if strings.Contains(strings.ToLower(content), queryLower) {
+			date := strings.TrimSuffix(filepath.Base(file), ".md")
+			lines := strings.Split(content, "\n")
+			var matchedLines []string
+			for _, line := range lines {
+				if strings.Contains(strings.ToLower(line), queryLower) {
+					matchedLines = append(matchedLines, strings.TrimSpace(line))
+				}
+			}
+			results = append(results, &Memory{
+				Name:        "journal/" + date,
+				Description: fmt.Sprintf("Journal entry from %s (%d matching lines)", date, len(matchedLines)),
+				Type:        "journal",
+				Content:     strings.Join(matchedLines, "\n"),
+			})
+		}
+	}
+
 	return results
 }
 

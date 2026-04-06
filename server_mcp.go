@@ -134,9 +134,9 @@ func (m *MCPServer) handleToolsList(id interface{}) {
 			InputSchema: jsonSchema(map[string]interface{}{
 				"name":        prop("string", "Memory name (used as filename)"),
 				"content":     prop("string", "Memory content (markdown)"),
-				"description": prop("string", "Short description for search indexing"),
+				"description": prop("string", "Short one-line description (required, used in memory_list and search)"),
 				"type":        prop("string", "Memory type: user, project, feedback, reference, auto"),
-			}, "name", "content"),
+			}, "name", "content", "description"),
 		},
 		{
 			Name:        "memory_get",
